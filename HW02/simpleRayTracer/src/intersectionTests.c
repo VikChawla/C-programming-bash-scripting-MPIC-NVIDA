@@ -1,35 +1,49 @@
 #include "simpleRayTracer.h"
 
 // HW02Q2: complete this function
-bool intersectRayDisk(const ray_t r, const disk_t disk, dfloat *pt_t){
-
+bool intersectRayDisk(const ray_t r, const disk_t disk, dfloat *pt_t)
+{
+ 
+  dfloat t = 1e9;
   vector_t s = r.start;
   vector_t d = r.dir;
   vector_t n = disk.normal;
   vector_t c = disk.center;
 
-  dfloat t = 1e9;
+   double tol = 1e-8;
+   double num = vectorDot(n,c) - vectorDot(n, s);
+  double den = vectorDot(n, d);
   
-  // A. find if there is an intersection between ray and disk
-  //    i.e. exists point p on disk such that p = s+t*d for some t>=0
+  if(fabs(den) < tol)
+    {
+      return 0;
+    }
 
-  // B. If no intersection return false
-  
-  // C. If there is an intersection then check is t< (*pt_t)
-  //    a. if false: return false
-  //    b. if true: set *pt_t = t, and return true
+  if(num/den < 0)
+    {
+      return 0;
+    }
 
-  if(t< (*pt_t)){
-    *pt_t = t;
-    return true;
-  }
+  vector_t test_pt = vectorAdd(vectorScale(1., s), vectorScale((num/den), d));
 
-  return false;
+  if (vectorNorm(vectorSub(test_pt, c)) > disk.radius)
+    {
+      return 0;
+    }
+
+  if((num/den) < *pt_t)
+	{
+	  *pt_t = (num/den);
+	  return true;
+	}
+	return false;
+      
+
 }
 
 // HW02Q3: complete this function
 bool intersectRayCylinder(const ray_t r, const cylinder_t cylinder, dfloat *pt_t){
-
+ 
   vector_t s = r.start;
   vector_t d = r.dir;
 
@@ -39,15 +53,41 @@ bool intersectRayCylinder(const ray_t r, const cylinder_t cylinder, dfloat *pt_t
   dfloat   H = cylinder.height;
 
   dfloat t = 1e9;
-  
-  // A. find if there is an intersection between ray and cylinder
-  //    i.e. exists point p on disk such that p = s+t*d for some t>=0
+  double tol = 1e-8;
 
-  // B. If no intersection return false
+  double ray_dist;
+  vector_t h_term;
+  vector_t const_term;
+  vector_t projected_height;
+  vector_t test_pt;
+
+  h_term = vectorSub(vectorScale(1., d),vectorScale(vectorDot(d, a),a));
+  const_term = vectorSub(vectorScale(1., vectorSub(s,c)), vectorScale(vectorDot(a,vectorSub(s,c)),a));
   
-  // C. If there is an intersection then check is t< (*pt_t)
-  //    a. if false: return false
-  //    b. if true: set *pt_t = t, and return true
+  double Aquad = vectorDot(h_term,h_term);
+  double Bquad = 2*vectorDot(h_term,const_term);
+  double Cquad = vectorDot(const_term,const_term) - R*R;
+ 
+  
+
+  if(Bquad*Bquad - 4*Aquad*Cquad < 0.)
+    return false;
+
+  if(-1*Bquad + sqrt(fabs(Bquad*Bquad - 4*Aquad*Cquad)) < tol)
+    return false;
+
+  if(-1*Bquad > sqrt(Bquad*Bquad - 4*Aquad*Cquad))
+    {
+    ray_dist = (-1*sqrt(Bquad*Bquad - 4*Aquad*Cquad) - Bquad)/(2*Aquad);
+    test_pt = vectorAdd(vectorScale(1, s),vectorScale(ray_dist, d));
+    projected_height = vectorSub(test_pt, c);
+
+    if(vectorDot(projected_height, a) > 0 &&
+       vectorDot(projected_height, a) < H)
+      {
+	t = ray_dist;
+      }
+    }
 
   if(t< (*pt_t)){
     *pt_t = t;
@@ -58,8 +98,29 @@ bool intersectRayCylinder(const ray_t r, const cylinder_t cylinder, dfloat *pt_t
 
 }
 
+
+
+
+
+  
+  // B. If no intersection return false
+  
+  // C. If there is an intersection then check is t< (*pt_t)
+  //    a. if false: return false
+  //    b. if true: set *pt_t = t, and return true
+  /*
+  if(t< (*pt_t)){
+    *pt_t = t;
+    return true;
+  }
+
+  return false;
+  */
+
+
 // HW02Q4: complete this function
-bool intersectRayCone(const ray_t r, const cone_t cone, dfloat *pt_t){
+bool intersectRayCone(const ray_t r, const cone_t cone, dfloat *pt_t)
+{
 
   vector_t s = r.start;
   vector_t d = r.dir;
@@ -68,26 +129,81 @@ bool intersectRayCone(const ray_t r, const cone_t cone, dfloat *pt_t){
   vector_t a = cone.axis;
   dfloat   R = cone.radius;
   dfloat   H = cone.height;
-  
+
+  vector_t term = vectorSub(s, v);
   dfloat t = 1e9;
   
-  // A. find if there is an intersection between ray and cylinder
-  //    i.e. exists point p on disk such that p = s+t*d for some t>=0
-
-  // B. If no intersection return false
   
-  // C. If there is an intersection then check is t< (*pt_t)
-  //    a. if false: return false
-  //    b. if true: set *pt_t = t, and return true
 
-  if(t< (*pt_t)){
-    *pt_t = t;
-    return true;
-  }
+  
+  double ray_dist;
+  vector_t projected_height;
+  vector_t test_pt;
+  double tol = 1e-8;
 
-  return false;
+  vector_t w = vectorSub(d, vectorScale(vectorDot(a,d), a));
+  vector_t x = vectorSub(term, vectorScale(vectorDot(a, term), a));
+  double y = (R/H)*(vectorDot(d,a));
+  double z = (R/H)*((vectorDot(s, a) - vectorDot(v, a)));
+
+  double Qa = vectorDot(w, w) - (y*y);
+  double Qb = 2*(vectorDot(w, x) - (y*z));
+  double Qc = vectorDot(x, x) - (z*z);
+
+  if(Qb*Qb - 4*Qa*Qc < 0.)
+    {
+      return false;
+    }
+
+  if(-1*Qb + sqrt(fabs(Qb*Qb - 4*Qa*Qc)) < tol)
+    {
+      return false;
+    }
+
+  if(-1*Qb > sqrt(Qb *Qb - 4*Qa*Qc))
+    {
+      t = (-1*sqrt(Qb *Qb - 4*Qa*Qc) - Qb)/(2*Qa);
+
+      test_pt = vectorAdd(s, vectorScale(t, d));
+
+      projected_height = vectorSub(test_pt, v);
+
+      if(vectorDot(projected_height, a) > 0 && vectorDot(projected_height, a) < H)
+	{
+	  if(t < (*pt_t))
+	    {
+	      *pt_t = t;
+	      return true;
+	    }
+	}
+      
+    }
+   t = (sqrt(Qb *Qb - 4*Qa*Qc) - Qb)/(2*Qa);
+  test_pt = vectorAdd(s, vectorScale(t, d));
+  projected_height = vectorSub(test_pt, v);
+  
+       if(vectorDot(projected_height, a) > 0 && vectorDot(projected_height, a) < H)
+  	{
+    if(t < (*pt_t))
+  	    {
+  	      *pt_t = t;
+ 	      return true;
+  	    }
+  	}
+  
+    return false;
+  
+    if(t <(*pt_t))
+  	{
+  	  *pt_t = t;
+  	  return true;
+  	}
+      return false;
+      
+      
   
 }
+ 
 
 // Do not edit beyond here--------------------------------------------------------------------------->
 
@@ -163,9 +279,10 @@ bool intersectRayRectangle(const ray_t r, const rectangle_t rect, dfloat *t){
 
 
 /* Check if the ray and sphere intersect */
-bool intersectRaySphere(const ray_t r, const sphere_t s, dfloat *t){
+bool intersectRaySphere(const ray_t r, const sphere_t s, dfloat *t)
+{
 	
-  bool retval = false;
+    bool retval = false;
 
   /* A = d.d, the vector_t dot product of the direction */
   dfloat A = vectorDot(r.dir, r.dir); 
@@ -324,6 +441,7 @@ bool intersectRayShape(const ray_t r, const shape_t s, dfloat *t){
   }
 
   return false;
+
   
 }
 

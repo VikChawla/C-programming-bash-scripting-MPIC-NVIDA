@@ -7,10 +7,10 @@ CC	= g++
 LD	= g++
 
 # compiler flags to be used (set to compile with debugging on)
-CFLAGS = -I$(HDRDIR)  -Ddfloat=double -DdfloatString='"%lg"' 
+CFLAGS = -I$(HDRDIR)  -Ddfloat=double -DdfloatString='"%lg"' -g -O3
 
 # link flags to be used 
-LDFLAGS	= 
+LDFLAGS	= -g -O3
 
 # libraries to be linked in
 LIBS	=  -lm 

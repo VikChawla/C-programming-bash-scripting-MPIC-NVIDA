@@ -32,13 +32,16 @@ scene_t *sceneSetup(){
   materials[0].info.refractor = 0;
   materials[0].info.reflector = 1;
   materials[0].info.emitter = 0;
+  
 
   // randomly generate rest of materials
-  for(i=1;i<Nmaterials;++i){
+  for(i=1;i<Nmaterials;++i)
+    {
     
     // randomly choose rgb components each in the range [0.125,0.8]
     // [ generates nice pastel shades ]
     materials[i].diffuse.red   = drandRange48(0.125,0.8);
+    // materials[i].info.emitter = 1;
     materials[i].diffuse.green = drandRange48(0.125,0.8);
     materials[i].diffuse.blue  = drandRange48(0.125,0.8);
 
@@ -63,15 +66,16 @@ scene_t *sceneSetup(){
   // read bunny.ply 
   int Ntriangles; 
   triangle_t *triangles;
-  readPlyModel("bunny.ply", &Ntriangles, &triangles);
+  readPlyModel("dragon.ply", &Ntriangles, &triangles);
 
-  int Nbunny = 10;   // will use 10 copies of bunny
-  int Nspheres = 100; // 100 random spheres
-  int Ncones = 20;    // 20 random cones
-  int Ncylinders = 20;// 20 random cylinders
-  int Nrectangles = 1;// 1  ground plane rectangle
+  int Nbunny = 0;   // will use 10 copies of bunny
+  int Nspheres = 50; // 100 random spheres
+  int Ncones = 20 ;    // 20 random cones
+  int Ncylinders = 0;// 20 random cylinders
+  int Nrectangles = 0;// 1  ground plane rectangle
+  int Ndisk = 0 ;
 
-  int Nshapes = Nspheres + Nbunny*Ntriangles + Ncones + 3*Ncylinders + Nrectangles; // each cylinder has two end disks
+  int Nshapes = Nspheres + Nbunny*Ntriangles + Ncones + 3*Ncylinders + Nrectangles + Ndisk; // each cylinder has two end disks
 
   shape_t *shapes = (shape_t*) calloc(Nshapes, sizeof(shape_t));
 
@@ -154,6 +158,26 @@ scene_t *sceneSetup(){
     ++cnt;
     
   }
+
+   for(i=0;i<Ndisk;++i){
+
+    shapes[cnt].disk.radius = 100 + 10*drand48();
+    //  shapes[cnt].disk.height = 380 + 40*drand48();
+
+    dfloat phi = 0.25*M_PI*drand48();
+    shapes[cnt].disk.normal.x = 0; // unit vector
+    shapes[cnt].disk.normal.y = cos(phi);
+    shapes[cnt].disk.normal.z = sin(phi);
+    
+    shapes[cnt].disk.center.x = L/2 + (L)*(drand48()-0.5);
+    shapes[cnt].disk.center.y =  L/2 + (L)*(drand48()-0.5);
+    shapes[cnt].disk.center.z = L/2 + (L)*(drand48()-0.5);
+    
+    shapes[cnt].material = 1 + (Nmaterials-2)*drand48();
+    shapes[cnt].type = DISK;
+    shapes[cnt].id = cnt;
+    ++cnt;
+   }
 
   // generate random cylinders
   for(i=0;i<Ncylinders;++i){
