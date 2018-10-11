@@ -10,7 +10,9 @@ void renderKernel(const int NI,
 		  unsigned char *img){
   
   const colour_t bg = sensor.bg;
-
+  //NI= WIDTH
+  //NJ = HEIGHT
+  // *img = img
   // unpack contents of scene
   grid_t     *grid      = scene.grid;
   material_t *materials = scene.materials;
@@ -23,12 +25,19 @@ void renderKernel(const int NI,
 
   // (I,J) loop over pixels in image
 
-  
+   int rank;
+   int size;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_size(MPI_COMM_WORLD, &size);
   /*Q5: Modify this loop so each rank computes a different piece of the image
    *
    */
-
-  for(int J=0;J<NJ;++J){
+  //(NJ * NI )/2???
+  // int beg = (size - rank - 1)*(NJ/size);
+  // int end = (size - rank) *(NJ/size);
+  // int beg= rank * (NJ/size);
+  // int end =  (rank + 1) * (NJ/size);
+  for(int J=0 ; J< NJ; ++J){
     for(int I=0;I<NI;++I){
       ray_t r;
       
@@ -125,6 +134,8 @@ void renderKernel(const int NI,
       img[(I + (NJ-1-J)*NI)*3 + 0] = (unsigned char)min(  c.red*255.0f, 255.0f);
       img[(I + (NJ-1-J)*NI)*3 + 1] = (unsigned char)min(c.green*255.0f, 255.0f);
       img[(I + (NJ-1-J)*NI)*3 + 2] = (unsigned char)min( c.blue*255.0f, 255.0f);
+      
     }  
   }
+  MPI_Barrier(MPI_COMM_WORLD);
 }

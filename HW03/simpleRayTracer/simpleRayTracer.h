@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdbool.h> /* Needed for boolean datatype */
 #include <math.h>
+#include <mpi.h>
+
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 #define max(a,b) (((a) > (b)) ? (a) : (b))

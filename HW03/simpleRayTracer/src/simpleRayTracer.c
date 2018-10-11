@@ -1,3 +1,4 @@
+
 #include "simpleRayTracer.h"
 
 // to compile:
@@ -9,12 +10,19 @@
 // to compile animation:
 //   ffmpeg -y -i image_%05d.ppm -pix_fmt yuv420p foo.mp4
 
-int main(int argc, char *argv[]){
-  
+int main(int argc, char *argv[])
+{
+   MPI_Init(&argc, &argv);
+
+   
+    
   int rank = 0;
   int size = 1;
   
   initTimer();
+  
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &size);
   
   // initialize triangles and spheres
   scene_t *scene = sceneSetup();
@@ -98,15 +106,53 @@ int main(int argc, char *argv[]){
 		 sin(theta),
 		 randomNumbers,
 		 img);
+     
+   	unsigned char* out = (unsigned char*) calloc(3*WIDTH*(HEIGHT/size), sizeof(unsigned char));
 
+   
+    unsigned char* in = (unsigned char*) calloc(3*WIDTH*(HEIGHT/size), sizeof(unsigned char));
+
+	 
+
+      if(rank != 0)
+      
+      {
+	int messageTag = 999;
+
+	
 
     
-    /*Q4 and Q5: All communication between threads should go here
-     *
-     */
+	for(int x= 0; x< 3*WIDTH*(HEIGHT/size); x++)
+		  {
+		    out[x] = img[rank *(3*WIDTH*(HEIGHT/size))  + x];
+		 
+		    MPI_Send(out, 3*WIDTH*(HEIGHT/size), MPI_UNSIGNED_CHAR, 0, messageTag, MPI_COMM_WORLD);
 
+              }
+}
 
-     
+  if(rank == 0)
+	    {
+	      MPI_Status status;
+
+	      //  int messageSource;
+	      int messageTag = 999;
+	      for(int j = 1; j<size; ++j)
+		{
+		  
+		  MPI_Recv(in, 3*WIDTH*(HEIGHT/size), MPI_UNSIGNED_CHAR, j, messageTag, MPI_COMM_WORLD, &status);
+
+		  for(int i = 0; i < 3*WIDTH*(HEIGHT/size); ++i)
+		      {
+			 
+			img[j*(3*WIDTH*(HEIGHT/size)) + i] = in[j];
+		
+		      }
+		}
+
+	   
+      }
+         
     /* report elapsed time */
     if (rank == 0) 
       tocTimer("recursiveRenderKernel");
@@ -150,6 +196,7 @@ int main(int argc, char *argv[]){
   }
   
   free(img);
-  
+   MPI_Finalize();
   return 0;
+ 
 }
