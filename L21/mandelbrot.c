@@ -14,7 +14,7 @@ To create an image with 4096 x 4096 pixels (last argument will be used to set nu
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <OpenMP.h
+#include <omp.h>
 
 int writeMandelbrot(const char *fileName, int width, int height, float *img, int minI, int maxI);
 
@@ -74,6 +74,7 @@ int main(int argc, char **argv){
   int Nre = atoi(argv[1]);
   int Nim = atoi(argv[2]);
   int Nthreads = atoi(argv[argc-1]);
+  omp_set_num_threads(Nthreads);
 
   // storage for the iteration counts
   float *count = (float*) malloc(Nre*Nim*sizeof(float));
@@ -105,7 +106,7 @@ int main(int argc, char **argv){
   clock_t end = omp_get_wtime(); //start time in CPU cycles
   
   // print elapsed time
-  printf("elapsed = %f\n", ((double)(end-start))/CLOCKS_PER_SEC);
+  printf("elapsed = %lf\n", ((double)(end-start))/CLOCKS_PER_SEC);
   
   // output mandelbrot to png format image
   printf("Printing mandelbrot.ppm...");
