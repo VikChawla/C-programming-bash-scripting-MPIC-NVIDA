@@ -14,6 +14,7 @@ To create an image with 4096 x 4096 pixels (last argument will be used to set nu
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <OpenMP.h
 
 int writeMandelbrot(const char *fileName, int width, int height, float *img, int minI, int maxI);
 
@@ -52,7 +53,7 @@ int testpoint(complex_t c){
 // perform Mandelbrot iteration on a grid of numbers in the complex plane
 // record the  iteration counts in the count array
 void mandelbrot(int Nre, int Nim, complex_t cmin, complex_t dc, float *count){ 
-
+#pragma omp for 
   for(int n=0;n<Nim;++n){
     for(int m=0;m<Nre;++m){
       complex_t c;
@@ -72,7 +73,7 @@ int main(int argc, char **argv){
 
   int Nre = atoi(argv[1]);
   int Nim = atoi(argv[2]);
-  int Nthreads = atoi(argv[3]);
+  int Nthreads = atoi(argv[argc-1]);
 
   // storage for the iteration counts
   float *count = (float*) malloc(Nre*Nim*sizeof(float));
@@ -95,13 +96,13 @@ int main(int argc, char **argv){
   dc.i = (cmax.i-cmin.i)/(Nim-1);
 
   // replace with omp wtime 
-  clock_t start = clock(); //start time in CPU cycles
+  clock_t start = omp_get_wtime(); //start time in CPU cycles
 
   // compute mandelbrot set
   mandelbrot(Nre, Nim, cmin, dc, count); 
 
   // replace with omp wtime 
-  clock_t end = clock(); //start time in CPU cycles
+  clock_t end = omp_get_wtime(); //start time in CPU cycles
   
   // print elapsed time
   printf("elapsed = %f\n", ((double)(end-start))/CLOCKS_PER_SEC);
