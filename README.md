@@ -1,1 +1,1 @@
-# cmda3634_assignments
+# C-programming-bash-scripting-MPIC-NVIDA
